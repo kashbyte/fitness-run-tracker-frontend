@@ -13,6 +13,7 @@ export default function RunSessionPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState("");
+  const [progress, setProgress] = useState(0);
 
   const fetchSession = async () => {
     try {
@@ -24,7 +25,7 @@ export default function RunSessionPage() {
     }
   };
 
-  // Countdown calculation
+  // Countdown + progress bar calculation
   useEffect(() => {
     fetchSession();
     const interval = setInterval(() => {
@@ -40,8 +41,14 @@ export default function RunSessionPage() {
           const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((diff % (1000 * 60)) / 1000);
           setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+
+          // Progress bar fills as time passes (100% = start time reached)
+          const totalDiff = start - new Date(session.createdAt).getTime();
+          const percent = Math.min(100, ((totalDiff - diff) / totalDiff) * 100);
+          setProgress(percent);
         } else {
           setCountdown("Started");
+          setProgress(100);
         }
       }
     }, 1000);
@@ -86,9 +93,10 @@ export default function RunSessionPage() {
         textAlign: "center",
         backgroundColor: "#fefefe",
         fontFamily: "Arial, sans-serif",
+        color: "#000", // all text black
       }}
     >
-      <h1 style={{ marginBottom: "20px", color: "#333" }}>Run Session</h1>
+      <h1 style={{ marginBottom: "20px", color: "#000" }}>Run Session</h1>
 
       <p>
         <strong>Session ID:</strong> {session.sessionId}
@@ -102,6 +110,28 @@ export default function RunSessionPage() {
       <p>
         <strong>Countdown:</strong> {countdown}
       </p>
+
+      {/* Countdown progress bar */}
+      <div
+        style={{
+          width: "100%",
+          height: "15px",
+          borderRadius: "10px",
+          backgroundColor: "#ddd",
+          marginBottom: "15px",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${progress}%`,
+            height: "100%",
+            backgroundColor: "#4CAF50",
+            transition: "width 0.5s linear",
+          }}
+        />
+      </div>
+
       <p>
         <strong>Duration:</strong> {session.duration} minutes
       </p>
@@ -158,7 +188,7 @@ export default function RunSessionPage() {
       )}
 
       {!canJoin && session.status !== "completed" && (
-        <p style={{ marginTop: "15px", color: "#888" }}>
+        <p style={{ marginTop: "15px", color: "#555" }}>
           Joining closed or session is active
         </p>
       )}
