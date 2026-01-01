@@ -7,7 +7,7 @@ import { api } from "../../lib/api";
 export default function CreateRunPage() {
   const router = useRouter();
 
-  const [startTime, setStartTime] = useState("");
+  const [startTime, setStartTime] = useState(""); // format: YYYY-MM-DDTHH:mm
   const [duration, setDuration] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,10 +21,11 @@ export default function CreateRunPage() {
 
     setLoading(true);
     setError("");
+
     try {
-      // Send exactly what the backend expects
+      // Send startTime as-is, without converting to Date or UTC
       const res = await api.post("/create", {
-        startTime, // <-- keep as 'startTime', exact string from input
+        startTime, // keep exactly as "YYYY-MM-DDTHH:mm"
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
       });
@@ -49,15 +50,18 @@ export default function CreateRunPage() {
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <div>
-        <input
-          type="datetime-local"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-        />
+      <div style={{ margin: "10px 0" }}>
+        <label>
+          Start Time:
+          <input
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
+        </label>
       </div>
 
-      <div>
+      <div style={{ margin: "10px 0" }}>
         <input
           type="number"
           placeholder="Duration (minutes)"
@@ -66,7 +70,7 @@ export default function CreateRunPage() {
         />
       </div>
 
-      <div>
+      <div style={{ margin: "10px 0" }}>
         <input
           type="number"
           placeholder="Max Participants"

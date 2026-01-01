@@ -13,6 +13,7 @@ export default function RunSessionPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState("");
+  const [currentStatus, setCurrentStatus] = useState("");
 
   // Fetch session info from backend
   const fetchSession = async () => {
@@ -27,24 +28,26 @@ export default function RunSessionPage() {
 
   useEffect(() => {
     fetchSession();
-    const interval = setInterval(fetchSession, 5000); // refresh every 5s
+    const interval = setInterval(fetchSession, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown timer
+  // Countdown timer + client-side status
   useEffect(() => {
     if (!session || !session.startTime) return;
 
     const interval = setInterval(() => {
       const now = new Date();
-      // Parse the startTime string as local time
+
+      // Parse local startTime string exactly as entered (no UTC)
       const [datePart, timePart] = session.startTime.split("T");
       const [year, month, day] = datePart.split("-").map(Number);
       const [hour, minute] = timePart.split(":").map(Number);
-
       const startDate = new Date(year, month - 1, day, hour, minute);
 
       const diffMs = startDate - now;
+
+      // Countdown display
       if (diffMs <= 0) {
         setCountdown("Started");
       } else {
@@ -53,6 +56,14 @@ export default function RunSessionPage() {
         const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
         setCountdown(`${hours}h ${minutes}m ${seconds}s`);
       }
+
+      // Client-side status calculation
+      const endDate = new Date(
+        startDate.getTime() + session.duration * 60 * 1000
+      );
+      if (now < startDate) setCurrentStatus("scheduled");
+      else if (now >= startDate && now <= endDate) setCurrentStatus("active");
+      else setCurrentStatus("completed");
     }, 1000);
 
     return () => clearInterval(interval);
@@ -81,8 +92,12 @@ export default function RunSessionPage() {
   if (!session) return <div>Loading session...</div>;
 
   const canJoin =
-    session.status === "scheduled" &&
+    currentStatus === "scheduled" &&
     session.participants.length < session.maxParticipants;
+
+  // Display startTime in 24-hour format exactly as entered
+  const [datePart, timePart] = session.startTime.split("T");
+  const formattedTime = `${datePart} ${timePart}`;
 
   return (
     <div
@@ -93,19 +108,15 @@ export default function RunSessionPage() {
       <p>
         <strong>Session ID:</strong> {session.sessionId}
       </p>
-
       <p>
-        <strong>Status:</strong> {session.status}
+        <strong>Status:</strong> {currentStatus}
       </p>
-
       <p>
-        <strong>Start Time:</strong> {session.startTime}
+        <strong>Start Time:</strong> {formattedTime}
       </p>
-
       <p>
         <strong>Countdown:</strong> {countdown}
       </p>
-
       <p>
         <strong>Duration:</strong> {session.duration} minutes
       </p>
@@ -115,14 +126,11 @@ export default function RunSessionPage() {
           Participants ({session.participants.length}/{session.maxParticipants})
         </strong>
       </p>
-
       <ul>
         {session.participants.map((p, i) => (
           <li key={i}>{p.name}</li>
         ))}
       </ul>
-
-      {session.status === "completed" && <p>Session is completed</p>}
 
       {canJoin && (
         <div style={{ marginTop: "20px" }}>
@@ -138,7 +146,7 @@ export default function RunSessionPage() {
         </div>
       )}
 
-      {!canJoin && session.status !== "completed" && (
+      {!canJoin && currentStatus !== "completed" && (
         <p>Joining closed or session is active</p>
       )}
     </div>
