@@ -13,12 +13,6 @@ export default function CreateRunPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Convert local datetime-local string to ISO string without UTC shift
-  const toLocalISO = (datetimeLocal) => {
-    const [date, time] = datetimeLocal.split("T");
-    return `${date}T${time}:00`; // append seconds
-  };
-
   const handleCreate = async () => {
     if (!startTime || !duration || !maxParticipants) {
       alert("All fields are required");
@@ -28,8 +22,11 @@ export default function CreateRunPage() {
     setLoading(true);
     setError("");
     try {
+      // Convert local datetime-local input to JS Date and send as UTC ISO string
+      const start = new Date(startTime);
+
       const res = await api.post("/create", {
-        startTime: toLocalISO(startTime), // send local ISO string
+        startTime: start.toISOString(), // store UTC in backend
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
       });

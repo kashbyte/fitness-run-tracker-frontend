@@ -14,10 +14,9 @@ export default function RunSessionPage() {
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState("");
 
-  // Helper to format ISO date to local 24-hour format
   const formatLocalDate = (isoString) => {
     const date = new Date(isoString);
-    const formatted = date.toLocaleString("en-SG", {
+    return date.toLocaleString("en-SG", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -26,8 +25,6 @@ export default function RunSessionPage() {
       second: "2-digit",
       hour12: false,
     });
-    console.log("Formatting date:", isoString, "->", formatted); // Debug log
-    return formatted;
   };
 
   const fetchSession = async () => {
@@ -46,7 +43,6 @@ export default function RunSessionPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown logic
   useEffect(() => {
     if (!session) return;
 
