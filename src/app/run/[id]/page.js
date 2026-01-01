@@ -1,120 +1,110 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "../../../lib/api";
-import { use } from "react";
+import { useParams } from "next/navigation"; // for App Router
+import { api } from "../../lib/api";
 
-export default function RunSession({ params }) {
-  const { id } = use(params);
+export default function RunSessionPage() {
+  const params = useParams();
+  const sessionId = params.id;
+
   const [session, setSession] = useState(null);
   const [name, setName] = useState("");
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch session initially
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await api.get(`/runs/${id}`);
-        setSession(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchSession();
-  }, [id]);
-
-  // Countdown timer
-  useEffect(() => {
-    if (!session) return;
-    const interval = setInterval(() => {
-      const start = new Date(session.startTime);
-      const now = new Date();
-      const diff = Math.floor((start - now) / 1000);
-      setTimeLeft(diff > 0 ? diff : 0);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [session]);
-
-  // Poll backend for status
-  useEffect(() => {
-    if (!session) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await api.get(`/runs/${session.sessionId}`);
-        setSession(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [session]);
-
-  const joinRun = async () => {
-    if (!name) {
-      setError("Please enter your name");
-      return;
-    }
-
+  // Fetch session info from backend
+  const fetchSession = async () => {
     try {
-      const res = await api.post(`/runs/${id}/join`, { name });
+      const res = await api.get(`/${sessionId}`);
       setSession(res.data);
-      setError("");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to join run");
+      console.error(err);
+      setError("Failed to fetch session");
     }
   };
 
-  if (!session) return <p>Loading...</p>;
+  useEffect(() => {
+    fetchSession();
+    const interval = setInterval(fetchSession, 5000); // refresh every 5s
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleJoin = async () => {
+    if (!name) {
+      alert("Enter your name to join");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.post(`/${sessionId}/join`, { name });
+      alert("You joined the session!");
+      setName("");
+      fetchSession(); // refresh participants
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to join session");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (error) return <div>{error}</div>;
+  if (!session) return <div>Loading session...</div>;
 
   const canJoin =
     session.status === "scheduled" &&
-    (session.participants?.length ?? 0) < Number(session.maxParticipants);
+    session.participants.length < session.maxParticipants;
 
   return (
-    <div style={{ padding: "20px", maxWidth: "400px", margin: "auto" }}>
-      <h2>Run Session</h2>
-
+    <div
+      style={{ maxWidth: "500px", margin: "50px auto", textAlign: "center" }}
+    >
+      <h1>Run Session</h1>
       <p>
-        Status: <strong>{session.status}</strong>
+        <strong>Session ID:</strong> {session.sessionId}
       </p>
-      <p>Starts in: {timeLeft}s</p>
       <p>
-        Participants: {session.participants.length} / {session.maxParticipants}
+        <strong>Status:</strong> {session.status}
       </p>
-
-      {canJoin ? (
-        <>
-          <input
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ width: "100%", padding: "8px", marginBottom: "8px" }}
-          />
-          <button
-            onClick={joinRun}
-            style={{ width: "100%", padding: "10px", marginBottom: "8px" }}
-          >
-            Join Run
-          </button>
-          {error && <p style={{ color: "red" }}>{error}</p>}
-        </>
-      ) : session.status === "active" ? (
-        <p style={{ color: "orange" }}>
-          Run is in progress. Joining is closed.
-        </p>
-      ) : session.status === "completed" ? (
-        <p style={{ color: "green" }}>Run has ended.</p>
-      ) : (
-        <p style={{ color: "red" }}>Participant limit reached</p>
-      )}
-
-      <h3>Participants</h3>
+      <p>
+        <strong>Start Time:</strong>{" "}
+        {new Date(session.startTime).toLocaleString()}
+      </p>
+      <p>
+        <strong>Duration:</strong> {session.duration} minutes
+      </p>
+      <p>
+        <strong>
+          Participants ({session.participants.length}/{session.maxParticipants}
+          ):
+        </strong>
+      </p>
       <ul>
         {session.participants.map((p, i) => (
           <li key={i}>{p.name}</li>
         ))}
       </ul>
+
+      {session.status === "completed" && <p>Session is completed</p>}
+
+      {canJoin && (
+        <div style={{ marginTop: "20px" }}>
+          <input
+            type="text"
+            placeholder="Your Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <button onClick={handleJoin} disabled={loading}>
+            {loading ? "Joining..." : "Join Session"}
+          </button>
+        </div>
+      )}
+
+      {!canJoin && session.status !== "completed" && (
+        <p>Joining closed or session is active</p>
+      )}
     </div>
   );
 }
