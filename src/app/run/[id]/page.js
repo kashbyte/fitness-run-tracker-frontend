@@ -14,6 +14,22 @@ export default function RunSessionPage() {
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState("");
 
+  // Helper to format ISO date to local 24-hour format
+  const formatLocalDate = (isoString) => {
+    const date = new Date(isoString);
+    const formatted = date.toLocaleString("en-SG", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    console.log("Formatting date:", isoString, "->", formatted); // Debug log
+    return formatted;
+  };
+
   const fetchSession = async () => {
     try {
       const res = await api.get(`/${sessionId}`);
@@ -108,7 +124,7 @@ export default function RunSessionPage() {
           <strong>Status:</strong> {session.status}
         </p>
         <p>
-          <strong>Start Time:</strong> {session.startTime}
+          <strong>Start Time:</strong> {formatLocalDate(session.startTime)}
         </p>
         <p>
           <strong>Countdown:</strong> {countdown}
