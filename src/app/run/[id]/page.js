@@ -1,41 +1,85 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { api } from "../../lib/api";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { api } from "../../../lib/api";
 
-export default function CreateRunPage() {
-  const router = useRouter();
+export default function RunSessionPage() {
+  const params = useParams();
+  const sessionId = params.id;
 
-  const [startTime, setStartTime] = useState("");
-  const [duration, setDuration] = useState("");
-  const [maxParticipants, setMaxParticipants] = useState("");
+  const [session, setSession] = useState(null);
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [countdown, setCountdown] = useState("");
 
-  const handleCreate = async () => {
-    if (!startTime || !duration || !maxParticipants) {
-      alert("All fields are required");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
+  const fetchSession = async () => {
     try {
-      const res = await api.post("/create", {
-        startTime, // Save as string exactly as entered
-        duration: parseInt(duration),
-        maxParticipants: parseInt(maxParticipants),
-      });
-
-      router.push(`/run/${res.data.sessionId}`);
+      const res = await api.get(`/${sessionId}`);
+      setSession(res.data);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Failed to create session");
+      setError("Failed to fetch session");
+    }
+  };
+
+  useEffect(() => {
+    fetchSession();
+    const interval = setInterval(fetchSession, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Countdown
+  useEffect(() => {
+    if (!session) return;
+    const updateCountdown = () => {
+      const now = new Date();
+      const start = new Date(session.startTime); // treat as local time string
+      const diff = start.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setCountdown("Started");
+        return;
+      }
+
+      const hours = Math.floor(diff / 1000 / 60 / 60);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
+    return () => clearInterval(timer);
+  }, [session]);
+
+  const handleJoin = async () => {
+    if (!name) {
+      alert("Enter your name to join");
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post(`/${sessionId}/join`, { name });
+      alert("You joined the session!");
+      setName("");
+      fetchSession();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to join session");
     } finally {
       setLoading(false);
     }
   };
+
+  if (error) return <div style={{ color: "black" }}>{error}</div>;
+  if (!session) return <div style={{ color: "black" }}>Loading session...</div>;
+
+  const canJoin =
+    session.status === "scheduled" &&
+    session.participants.length < session.maxParticipants;
 
   return (
     <div
@@ -44,57 +88,68 @@ export default function CreateRunPage() {
         margin: "50px auto",
         textAlign: "center",
         fontFamily: "sans-serif",
+        color: "black",
       }}
     >
-      <h1 style={{ marginBottom: "20px" }}>Create Run Session</h1>
+      <h1>Run Session</h1>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <p>
+        <strong>Session ID:</strong> {session.sessionId}
+      </p>
+      <p>
+        <strong>Status:</strong> {session.status}
+      </p>
+      <p>
+        <strong>Start Time:</strong> {session.startTime}
+      </p>
+      <p>
+        <strong>Countdown:</strong> {countdown}
+      </p>
+      <p>
+        <strong>Duration:</strong> {session.duration} minutes
+      </p>
+      <p>
+        <strong>
+          Participants ({session.participants.length}/{session.maxParticipants}
+          ):
+        </strong>
+      </p>
+      <ul>
+        {session.participants.map((p, i) => (
+          <li key={i}>{p.name}</li>
+        ))}
+      </ul>
 
-      <div style={{ marginBottom: "10px" }}>
-        <label>
-          Start Time:
+      {session.status === "completed" && <p>Session is completed</p>}
+
+      {canJoin && (
+        <div style={{ marginTop: "20px" }}>
           <input
-            type="datetime-local"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            style={{ marginLeft: "10px", padding: "5px" }}
+            type="text"
+            placeholder="Your Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ padding: "5px", marginRight: "10px" }}
           />
-        </label>
-      </div>
+          <button
+            onClick={handleJoin}
+            disabled={loading}
+            style={{
+              padding: "5px 10px",
+              backgroundColor: "#4CAF50",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            {loading ? "Joining..." : "Join Session"}
+          </button>
+        </div>
+      )}
 
-      <div style={{ marginBottom: "10px" }}>
-        <input
-          type="number"
-          placeholder="Duration (minutes)"
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
-          style={{ padding: "5px", width: "200px" }}
-        />
-      </div>
-
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          type="number"
-          placeholder="Max Participants"
-          value={maxParticipants}
-          onChange={(e) => setMaxParticipants(e.target.value)}
-          style={{ padding: "5px", width: "200px" }}
-        />
-      </div>
-
-      <button
-        onClick={handleCreate}
-        disabled={loading}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#4CAF50",
-          color: "white",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        {loading ? "Creating..." : "Create Session"}
-      </button>
+      {!canJoin && session.status !== "completed" && (
+        <p>Joining closed or session is active</p>
+      )}
     </div>
   );
 }
