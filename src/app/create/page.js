@@ -21,20 +21,24 @@ export default function CreateRunPage() {
 
     setLoading(true);
     setError("");
+
     try {
-      // Convert local datetime to UTC string
+      // Convert local datetime to Singapore time in ISO format
       const localDate = new Date(startTime);
-      const utcStartTime = new Date(
-        localDate.getTime() - localDate.getTimezoneOffset() * 60000
-      ).toISOString();
+      const sgOffset = 8 * 60; // Singapore is UTC+8
+      const startTimeSG = new Date(
+        localDate.getTime() + (sgOffset - localDate.getTimezoneOffset()) * 60000
+      );
 
       const res = await api.post("/create", {
-        startTime: utcStartTime,
+        startTime: startTimeSG.toISOString(),
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
       });
 
       const sessionId = res.data.sessionId;
+
+      // Redirect to the session page
       router.push(`/run/${sessionId}`);
     } catch (err) {
       console.error(err);

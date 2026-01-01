@@ -27,31 +27,9 @@ export default function RunSessionPage() {
 
   useEffect(() => {
     fetchSession();
-    const interval = setInterval(fetchSession, 5000); // refresh every 5s
+    const interval = setInterval(fetchSession, 5000);
     return () => clearInterval(interval);
   }, []);
-
-  // Countdown logic
-  useEffect(() => {
-    if (!session) return;
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const start = new Date(session.startTime);
-      const diff = start.getTime() - now.getTime();
-
-      if (diff <= 0) {
-        setCountdown("Session has started");
-      } else {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        setCountdown(`${hours}h ${minutes}m ${seconds}s`);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [session]);
 
   const handleJoin = async () => {
     if (!name) {
@@ -72,6 +50,37 @@ export default function RunSessionPage() {
     }
   };
 
+  // Countdown effect
+  useEffect(() => {
+    if (!session) return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const start = new Date(session.startTime);
+
+      // Convert 'now' to Singapore time (UTC+8)
+      const sgOffset = 8 * 60; // 8 hours in minutes
+      const nowUTC = now.getTime() + now.getTimezoneOffset() * 60000;
+      const nowSG = new Date(nowUTC + sgOffset * 60000);
+
+      const diff = start - nowSG; // difference in milliseconds
+
+      if (diff <= 0) {
+        setCountdown("Started");
+        clearInterval(interval);
+        return;
+      }
+
+      const hours = Math.floor(diff / 1000 / 60 / 60);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [session]);
+
   if (error) return <div>{error}</div>;
   if (!session) return <div>Loading session...</div>;
 
@@ -79,7 +88,7 @@ export default function RunSessionPage() {
     session.status === "scheduled" &&
     session.participants.length < session.maxParticipants;
 
-  // Display start time in Singapore timezone
+  // Display Start Time in Singapore timezone
   const startDate = new Date(session.startTime);
   const formattedStartTime = startDate.toLocaleString("en-SG", {
     timeZone: "Asia/Singapore",
@@ -100,25 +109,29 @@ export default function RunSessionPage() {
       <p>
         <strong>Session ID:</strong> {session.sessionId}
       </p>
+
       <p>
         <strong>Status:</strong> {session.status}
       </p>
+
       <p>
         <strong>Start Time:</strong> {formattedStartTime}
       </p>
-      {session.status === "scheduled" && (
-        <p>
-          <strong>Countdown:</strong> {countdown}
-        </p>
-      )}
+
+      <p>
+        <strong>Countdown:</strong> {countdown}
+      </p>
+
       <p>
         <strong>Duration:</strong> {session.duration} minutes
       </p>
+
       <p>
         <strong>
           Participants ({session.participants.length}/{session.maxParticipants})
         </strong>
       </p>
+
       <ul>
         {session.participants.map((p, i) => (
           <li key={i}>{p.name}</li>
