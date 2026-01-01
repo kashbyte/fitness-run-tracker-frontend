@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation"; // App Router
-import { api } from "../../lib/api"; // must match folder structure exactly
+import { api } from "../../../lib/api"; // must match folder structure exactly
 
 export default function RunSessionPage() {
   const params = useParams();
