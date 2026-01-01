@@ -21,16 +21,14 @@ export default function CreateRunPage() {
 
     setLoading(true);
     setError("");
-
     try {
       const res = await api.post("/create", {
-        startTime, // store exactly as typed
+        startTime, // Save as string exactly as entered
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
       });
 
-      const sessionId = res.data.sessionId;
-      router.push(`/run/${sessionId}`);
+      router.push(`/run/${res.data.sessionId}`);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Failed to create session");
@@ -42,94 +40,45 @@ export default function CreateRunPage() {
   return (
     <div
       style={{
-        maxWidth: "450px",
+        maxWidth: "500px",
         margin: "50px auto",
-        padding: "30px",
-        borderRadius: "15px",
-        boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
         textAlign: "center",
-        fontFamily: "Arial, sans-serif",
-        backgroundColor: "#f9f9f9",
+        fontFamily: "sans-serif",
       }}
     >
-      <h1 style={{ marginBottom: "20px", color: "#333" }}>
-        Create Run Session
-      </h1>
+      <h1 style={{ marginBottom: "20px" }}>Create Run Session</h1>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <div style={{ marginBottom: "15px" }}>
-        <label
-          style={{
-            display: "block",
-            marginBottom: "5px",
-            fontWeight: "bold",
-            color: "#555",
-          }}
-        >
-          Start Time
+      <div style={{ marginBottom: "10px" }}>
+        <label>
+          Start Time:
+          <input
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            style={{ marginLeft: "10px", padding: "5px" }}
+          />
         </label>
-        <input
-          type="datetime-local"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-          }}
-        />
       </div>
 
-      <div style={{ marginBottom: "15px" }}>
-        <label
-          style={{
-            display: "block",
-            marginBottom: "5px",
-            fontWeight: "bold",
-            color: "#555",
-          }}
-        >
-          Duration (minutes)
-        </label>
+      <div style={{ marginBottom: "10px" }}>
         <input
           type="number"
+          placeholder="Duration (minutes)"
           value={duration}
           onChange={(e) => setDuration(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-          }}
+          style={{ padding: "5px", width: "200px" }}
         />
       </div>
 
-      <div style={{ marginBottom: "25px" }}>
-        <label
-          style={{
-            display: "block",
-            marginBottom: "5px",
-            fontWeight: "bold",
-            color: "#555",
-          }}
-        >
-          Max Participants
-        </label>
+      <div style={{ marginBottom: "20px" }}>
         <input
           type="number"
+          placeholder="Max Participants"
           value={maxParticipants}
           onChange={(e) => setMaxParticipants(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-          }}
+          style={{ padding: "5px", width: "200px" }}
         />
       </div>
 
@@ -137,15 +86,11 @@ export default function CreateRunPage() {
         onClick={handleCreate}
         disabled={loading}
         style={{
-          width: "100%",
-          padding: "12px",
-          borderRadius: "10px",
-          border: "none",
+          padding: "10px 20px",
           backgroundColor: "#4CAF50",
           color: "white",
-          fontSize: "18px",
-          fontWeight: "bold",
-          cursor: loading ? "not-allowed" : "pointer",
+          border: "none",
+          cursor: "pointer",
         }}
       >
         {loading ? "Creating..." : "Create Session"}

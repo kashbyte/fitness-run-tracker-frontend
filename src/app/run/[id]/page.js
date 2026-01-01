@@ -1,197 +1,100 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { api } from "../../../lib/api";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "../../lib/api";
 
-export default function RunSessionPage() {
-  const params = useParams();
-  const sessionId = params.id;
+export default function CreateRunPage() {
+  const router = useRouter();
 
-  const [session, setSession] = useState(null);
-  const [name, setName] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [duration, setDuration] = useState("");
+  const [maxParticipants, setMaxParticipants] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [countdown, setCountdown] = useState("");
-  const [progress, setProgress] = useState(0);
 
-  const fetchSession = async () => {
-    try {
-      const res = await api.get(`/${sessionId}`);
-      setSession(res.data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch session");
-    }
-  };
-
-  // Countdown + progress bar calculation
-  useEffect(() => {
-    fetchSession();
-    const interval = setInterval(() => {
-      fetchSession();
-
-      if (session?.startTime) {
-        const start = new Date(session.startTime).getTime();
-        const now = new Date().getTime();
-        const diff = start - now;
-
-        if (diff > 0) {
-          const hours = Math.floor(diff / (1000 * 60 * 60));
-          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-          setCountdown(`${hours}h ${minutes}m ${seconds}s`);
-
-          // Progress bar fills as time passes (100% = start time reached)
-          const totalDiff = start - new Date(session.createdAt).getTime();
-          const percent = Math.min(100, ((totalDiff - diff) / totalDiff) * 100);
-          setProgress(percent);
-        } else {
-          setCountdown("Started");
-          setProgress(100);
-        }
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [session]);
-
-  const handleJoin = async () => {
-    if (!name) {
-      alert("Enter your name to join");
+  const handleCreate = async () => {
+    if (!startTime || !duration || !maxParticipants) {
+      alert("All fields are required");
       return;
     }
+
     setLoading(true);
+    setError("");
     try {
-      await api.post(`/${sessionId}/join`, { name });
-      alert("You joined the session!");
-      setName("");
-      fetchSession();
+      const res = await api.post("/create", {
+        startTime, // Save as string exactly as entered
+        duration: parseInt(duration),
+        maxParticipants: parseInt(maxParticipants),
+      });
+
+      router.push(`/run/${res.data.sessionId}`);
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Failed to join session");
+      setError(err.response?.data?.message || "Failed to create session");
     } finally {
       setLoading(false);
     }
   };
-
-  if (error) return <div>{error}</div>;
-  if (!session) return <div>Loading session...</div>;
-
-  const canJoin =
-    session.status === "scheduled" &&
-    session.participants.length < session.maxParticipants;
 
   return (
     <div
       style={{
         maxWidth: "500px",
         margin: "50px auto",
-        padding: "30px",
-        borderRadius: "15px",
-        boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
         textAlign: "center",
-        backgroundColor: "#fefefe",
-        fontFamily: "Arial, sans-serif",
-        color: "#000", // all text black
+        fontFamily: "sans-serif",
       }}
     >
-      <h1 style={{ marginBottom: "20px", color: "#000" }}>Run Session</h1>
+      <h1 style={{ marginBottom: "20px" }}>Create Run Session</h1>
 
-      <p>
-        <strong>Session ID:</strong> {session.sessionId}
-      </p>
-      <p>
-        <strong>Status:</strong> {session.status}
-      </p>
-      <p>
-        <strong>Start Time:</strong> {session.startTime}
-      </p>
-      <p>
-        <strong>Countdown:</strong> {countdown}
-      </p>
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* Countdown progress bar */}
-      <div
-        style={{
-          width: "100%",
-          height: "15px",
-          borderRadius: "10px",
-          backgroundColor: "#ddd",
-          marginBottom: "15px",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${progress}%`,
-            height: "100%",
-            backgroundColor: "#4CAF50",
-            transition: "width 0.5s linear",
-          }}
+      <div style={{ marginBottom: "10px" }}>
+        <label>
+          Start Time:
+          <input
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            style={{ marginLeft: "10px", padding: "5px" }}
+          />
+        </label>
+      </div>
+
+      <div style={{ marginBottom: "10px" }}>
+        <input
+          type="number"
+          placeholder="Duration (minutes)"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          style={{ padding: "5px", width: "200px" }}
         />
       </div>
 
-      <p>
-        <strong>Duration:</strong> {session.duration} minutes
-      </p>
-      <p>
-        <strong>
-          Participants ({session.participants.length}/{session.maxParticipants}
-          ):
-        </strong>
-      </p>
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {session.participants.map((p, i) => (
-          <li key={i} style={{ padding: "5px 0" }}>
-            {p.name}
-          </li>
-        ))}
-      </ul>
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="number"
+          placeholder="Max Participants"
+          value={maxParticipants}
+          onChange={(e) => setMaxParticipants(e.target.value)}
+          style={{ padding: "5px", width: "200px" }}
+        />
+      </div>
 
-      {session.status === "completed" && (
-        <p style={{ color: "red" }}>Session is completed</p>
-      )}
-
-      {canJoin && (
-        <div style={{ marginTop: "20px" }}>
-          <input
-            type="text"
-            placeholder="Your Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{
-              width: "70%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              fontSize: "16px",
-              marginRight: "5px",
-            }}
-          />
-          <button
-            onClick={handleJoin}
-            disabled={loading}
-            style={{
-              padding: "10px 20px",
-              borderRadius: "8px",
-              border: "none",
-              backgroundColor: "#4CAF50",
-              color: "white",
-              fontSize: "16px",
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-          >
-            {loading ? "Joining..." : "Join"}
-          </button>
-        </div>
-      )}
-
-      {!canJoin && session.status !== "completed" && (
-        <p style={{ marginTop: "15px", color: "#555" }}>
-          Joining closed or session is active
-        </p>
-      )}
+      <button
+        onClick={handleCreate}
+        disabled={loading}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#4CAF50",
+          color: "white",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        {loading ? "Creating..." : "Create Session"}
+      </button>
     </div>
   );
 }
