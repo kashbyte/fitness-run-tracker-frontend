@@ -13,9 +13,7 @@ export default function RunSessionPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState("");
-  const [currentStatus, setCurrentStatus] = useState("");
 
-  // Fetch session info from backend
   const fetchSession = async () => {
     try {
       const res = await api.get(`/${sessionId}`);
@@ -26,44 +24,26 @@ export default function RunSessionPage() {
     }
   };
 
+  // Countdown calculation
   useEffect(() => {
     fetchSession();
-    const interval = setInterval(fetchSession, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Countdown timer + client-side status
-  useEffect(() => {
-    if (!session || !session.startTime) return;
-
     const interval = setInterval(() => {
-      const now = new Date();
+      fetchSession();
 
-      // Parse local startTime string exactly as entered (no UTC)
-      const [datePart, timePart] = session.startTime.split("T");
-      const [year, month, day] = datePart.split("-").map(Number);
-      const [hour, minute] = timePart.split(":").map(Number);
-      const startDate = new Date(year, month - 1, day, hour, minute);
+      if (session?.startTime) {
+        const start = new Date(session.startTime).getTime();
+        const now = new Date().getTime();
+        const diff = start - now;
 
-      const diffMs = startDate - now;
-
-      // Countdown display
-      if (diffMs <= 0) {
-        setCountdown("Started");
-      } else {
-        const hours = Math.floor(diffMs / (1000 * 60 * 60));
-        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-        setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+        if (diff > 0) {
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+          setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+        } else {
+          setCountdown("Started");
+        }
       }
-
-      // Client-side status calculation
-      const endDate = new Date(
-        startDate.getTime() + session.duration * 60 * 1000
-      );
-      if (now < startDate) setCurrentStatus("scheduled");
-      else if (now >= startDate && now <= endDate) setCurrentStatus("active");
-      else setCurrentStatus("completed");
     }, 1000);
 
     return () => clearInterval(interval);
@@ -92,27 +72,32 @@ export default function RunSessionPage() {
   if (!session) return <div>Loading session...</div>;
 
   const canJoin =
-    currentStatus === "scheduled" &&
+    session.status === "scheduled" &&
     session.participants.length < session.maxParticipants;
-
-  // Display startTime in 24-hour format exactly as entered
-  const [datePart, timePart] = session.startTime.split("T");
-  const formattedTime = `${datePart} ${timePart}`;
 
   return (
     <div
-      style={{ maxWidth: "500px", margin: "50px auto", textAlign: "center" }}
+      style={{
+        maxWidth: "500px",
+        margin: "50px auto",
+        padding: "30px",
+        borderRadius: "15px",
+        boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+        textAlign: "center",
+        backgroundColor: "#fefefe",
+        fontFamily: "Arial, sans-serif",
+      }}
     >
-      <h1>Run Session</h1>
+      <h1 style={{ marginBottom: "20px", color: "#333" }}>Run Session</h1>
 
       <p>
         <strong>Session ID:</strong> {session.sessionId}
       </p>
       <p>
-        <strong>Status:</strong> {currentStatus}
+        <strong>Status:</strong> {session.status}
       </p>
       <p>
-        <strong>Start Time:</strong> {formattedTime}
+        <strong>Start Time:</strong> {session.startTime}
       </p>
       <p>
         <strong>Countdown:</strong> {countdown}
@@ -120,17 +105,23 @@ export default function RunSessionPage() {
       <p>
         <strong>Duration:</strong> {session.duration} minutes
       </p>
-
       <p>
         <strong>
-          Participants ({session.participants.length}/{session.maxParticipants})
+          Participants ({session.participants.length}/{session.maxParticipants}
+          ):
         </strong>
       </p>
-      <ul>
+      <ul style={{ listStyle: "none", padding: 0 }}>
         {session.participants.map((p, i) => (
-          <li key={i}>{p.name}</li>
+          <li key={i} style={{ padding: "5px 0" }}>
+            {p.name}
+          </li>
         ))}
       </ul>
+
+      {session.status === "completed" && (
+        <p style={{ color: "red" }}>Session is completed</p>
+      )}
 
       {canJoin && (
         <div style={{ marginTop: "20px" }}>
@@ -139,15 +130,37 @@ export default function RunSessionPage() {
             placeholder="Your Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            style={{
+              width: "70%",
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              fontSize: "16px",
+              marginRight: "5px",
+            }}
           />
-          <button onClick={handleJoin} disabled={loading}>
-            {loading ? "Joining..." : "Join Session"}
+          <button
+            onClick={handleJoin}
+            disabled={loading}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "8px",
+              border: "none",
+              backgroundColor: "#4CAF50",
+              color: "white",
+              fontSize: "16px",
+              cursor: loading ? "not-allowed" : "pointer",
+            }}
+          >
+            {loading ? "Joining..." : "Join"}
           </button>
         </div>
       )}
 
-      {!canJoin && currentStatus !== "completed" && (
-        <p>Joining closed or session is active</p>
+      {!canJoin && session.status !== "completed" && (
+        <p style={{ marginTop: "15px", color: "#888" }}>
+          Joining closed or session is active
+        </p>
       )}
     </div>
   );
