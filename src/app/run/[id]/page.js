@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation"; // App Router
-import { api } from "../../../lib/api"; // must match folder structure exactly
+import { useParams } from "next/navigation";
+import { api } from "../../../lib/api";
 
 export default function RunSessionPage() {
   const params = useParams();
@@ -26,7 +26,7 @@ export default function RunSessionPage() {
 
   useEffect(() => {
     fetchSession();
-    const interval = setInterval(fetchSession, 5000); // refresh every 5s
+    const interval = setInterval(fetchSession, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -37,7 +37,7 @@ export default function RunSessionPage() {
     }
     setLoading(true);
     try {
-      const res = await api.post(`/${sessionId}/join`, { name });
+      await api.post(`/${sessionId}/join`, { name });
       alert("You joined the session!");
       setName("");
       fetchSession();
@@ -56,30 +56,46 @@ export default function RunSessionPage() {
     session.status === "scheduled" &&
     session.participants.length < session.maxParticipants;
 
+  // ✅ FIXED TIME DISPLAY (Asia/Singapore)
+  const startDate = new Date(session.startTime);
+  const formattedStartTime = startDate.toLocaleString("en-SG", {
+    timeZone: "Asia/Singapore",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
   return (
     <div
       style={{ maxWidth: "500px", margin: "50px auto", textAlign: "center" }}
     >
       <h1>Run Session</h1>
+
       <p>
         <strong>Session ID:</strong> {session.sessionId}
       </p>
+
       <p>
         <strong>Status:</strong> {session.status}
       </p>
+
       <p>
-        <strong>Start Time:</strong>{" "}
-        {new Date(session.startTime).toLocaleString()}
+        <strong>Start Time:</strong> {formattedStartTime}
       </p>
+
       <p>
         <strong>Duration:</strong> {session.duration} minutes
       </p>
+
       <p>
         <strong>
-          Participants ({session.participants.length}/{session.maxParticipants}
-          ):
+          Participants ({session.participants.length}/{session.maxParticipants})
         </strong>
       </p>
+
       <ul>
         {session.participants.map((p, i) => (
           <li key={i}>{p.name}</li>
