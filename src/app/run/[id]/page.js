@@ -25,26 +25,33 @@ export default function RunSessionPage() {
     }
   };
 
-  // Countdown logic
   useEffect(() => {
     fetchSession();
+    const interval = setInterval(fetchSession, 5000); // refresh every 5s
+    return () => clearInterval(interval);
+  }, []);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!session || !session.startTime) return;
+
     const interval = setInterval(() => {
-      fetchSession(); // refresh participants
+      const now = new Date();
+      // Parse the startTime string as local time
+      const [datePart, timePart] = session.startTime.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute] = timePart.split(":").map(Number);
 
-      if (session) {
-        // Treat startTime as **local time string** directly
-        const start = new Date(session.startTimeLocal); // we'll store this in backend
-        const now = new Date();
-        const diff = start - now;
+      const startDate = new Date(year, month - 1, day, hour, minute);
 
-        if (diff <= 0) {
-          setCountdown("Started");
-        } else {
-          const hours = Math.floor(diff / (1000 * 60 * 60));
-          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-          setCountdown(`${hours}h ${minutes}m ${seconds}s`);
-        }
+      const diffMs = startDate - now;
+      if (diffMs <= 0) {
+        setCountdown("Started");
+      } else {
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+        setCountdown(`${hours}h ${minutes}m ${seconds}s`);
       }
     }, 1000);
 
@@ -77,9 +84,6 @@ export default function RunSessionPage() {
     session.status === "scheduled" &&
     session.participants.length < session.maxParticipants;
 
-  // Display the **exact start time string** the user picked
-  const startTimeDisplay = session.startTimeLocal;
-
   return (
     <div
       style={{ maxWidth: "500px", margin: "50px auto", textAlign: "center" }}
@@ -95,7 +99,7 @@ export default function RunSessionPage() {
       </p>
 
       <p>
-        <strong>Start Time:</strong> {startTimeDisplay}
+        <strong>Start Time:</strong> {session.startTime}
       </p>
 
       <p>
