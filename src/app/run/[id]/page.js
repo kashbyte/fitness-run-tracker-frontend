@@ -1,162 +1,82 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { api } from "../../../lib/api";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "../../lib/api";
 
-export default function RunSessionPage() {
-  const params = useParams();
-  const sessionId = params.id;
+export default function CreateRunPage() {
+  const router = useRouter();
 
-  const [session, setSession] = useState(null);
-  const [name, setName] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [duration, setDuration] = useState("");
+  const [maxParticipants, setMaxParticipants] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [countdown, setCountdown] = useState("");
 
-  // Fetch session info from backend
-  const fetchSession = async () => {
-    try {
-      const res = await api.get(`/${sessionId}`);
-      setSession(res.data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch session");
-    }
-  };
-
-  useEffect(() => {
-    fetchSession();
-    const interval = setInterval(fetchSession, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleJoin = async () => {
-    if (!name) {
-      alert("Enter your name to join");
+  const handleCreate = async () => {
+    if (!startTime || !duration || !maxParticipants) {
+      alert("All fields are required");
       return;
     }
+
     setLoading(true);
+    setError("");
+
     try {
-      await api.post(`/${sessionId}/join`, { name });
-      alert("You joined the session!");
-      setName("");
-      fetchSession();
+      // Send startTime as a string exactly as user picked
+      const res = await api.post("/create", {
+        startTimeLocal: startTime,
+        duration: parseInt(duration),
+        maxParticipants: parseInt(maxParticipants),
+      });
+
+      const sessionId = res.data.sessionId;
+
+      // Redirect to the session page
+      router.push(`/run/${sessionId}`);
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Failed to join session");
+      setError(err.response?.data?.message || "Failed to create run");
     } finally {
       setLoading(false);
     }
   };
 
-  // Countdown effect
-  useEffect(() => {
-    if (!session) return;
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const start = new Date(session.startTime);
-
-      // Convert 'now' to Singapore time (UTC+8)
-      const sgOffset = 8 * 60; // 8 hours in minutes
-      const nowUTC = now.getTime() + now.getTimezoneOffset() * 60000;
-      const nowSG = new Date(nowUTC + sgOffset * 60000);
-
-      const diff = start - nowSG; // difference in milliseconds
-
-      if (diff <= 0) {
-        setCountdown("Started");
-        clearInterval(interval);
-        return;
-      }
-
-      const hours = Math.floor(diff / 1000 / 60 / 60);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-
-      setCountdown(`${hours}h ${minutes}m ${seconds}s`);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [session]);
-
-  if (error) return <div>{error}</div>;
-  if (!session) return <div>Loading session...</div>;
-
-  const canJoin =
-    session.status === "scheduled" &&
-    session.participants.length < session.maxParticipants;
-
-  // Display Start Time in Singapore timezone
-  const startDate = new Date(session.startTime);
-  const formattedStartTime = startDate.toLocaleString("en-SG", {
-    timeZone: "Asia/Singapore",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-
   return (
     <div
       style={{ maxWidth: "500px", margin: "50px auto", textAlign: "center" }}
     >
-      <h1>Run Session</h1>
+      <h1>Create Run Session</h1>
 
-      <p>
-        <strong>Session ID:</strong> {session.sessionId}
-      </p>
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <p>
-        <strong>Status:</strong> {session.status}
-      </p>
+      <div>
+        <input
+          type="datetime-local"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+        />
+      </div>
+      <div>
+        <input
+          type="number"
+          placeholder="Duration (minutes)"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+        />
+      </div>
+      <div>
+        <input
+          type="number"
+          placeholder="Max Participants"
+          value={maxParticipants}
+          onChange={(e) => setMaxParticipants(e.target.value)}
+        />
+      </div>
 
-      <p>
-        <strong>Start Time:</strong> {formattedStartTime}
-      </p>
-
-      <p>
-        <strong>Countdown:</strong> {countdown}
-      </p>
-
-      <p>
-        <strong>Duration:</strong> {session.duration} minutes
-      </p>
-
-      <p>
-        <strong>
-          Participants ({session.participants.length}/{session.maxParticipants})
-        </strong>
-      </p>
-
-      <ul>
-        {session.participants.map((p, i) => (
-          <li key={i}>{p.name}</li>
-        ))}
-      </ul>
-
-      {session.status === "completed" && <p>Session is completed</p>}
-
-      {canJoin && (
-        <div style={{ marginTop: "20px" }}>
-          <input
-            type="text"
-            placeholder="Your Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button onClick={handleJoin} disabled={loading}>
-            {loading ? "Joining..." : "Join Session"}
-          </button>
-        </div>
-      )}
-
-      {!canJoin && session.status !== "completed" && (
-        <p>Joining closed or session is active</p>
-      )}
+      <button onClick={handleCreate} disabled={loading}>
+        {loading ? "Creating..." : "Create Session"}
+      </button>
     </div>
   );
 }
