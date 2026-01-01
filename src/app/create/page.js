@@ -21,11 +21,10 @@ export default function CreateRunPage() {
 
     setLoading(true);
     setError("");
-
     try {
-      // Send startTime as a string exactly as user picked
+      // Send exactly what the backend expects
       const res = await api.post("/create", {
-        startTimeLocal: startTime,
+        startTime, // <-- keep as 'startTime', exact string from input
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
       });
@@ -57,6 +56,7 @@ export default function CreateRunPage() {
           onChange={(e) => setStartTime(e.target.value)}
         />
       </div>
+
       <div>
         <input
           type="number"
@@ -65,6 +65,7 @@ export default function CreateRunPage() {
           onChange={(e) => setDuration(e.target.value)}
         />
       </div>
+
       <div>
         <input
           type="number"
