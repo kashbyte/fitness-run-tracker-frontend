@@ -21,25 +21,20 @@ export default function CreateRunPage() {
 
     setLoading(true);
     setError("");
-
     try {
-      /**
-       * FIX TIME HERE
-       * Convert local datetime to true UTC ISO string
-       */
+      // Convert local datetime to UTC string
       const localDate = new Date(startTime);
-      const utcDate = new Date(
+      const utcStartTime = new Date(
         localDate.getTime() - localDate.getTimezoneOffset() * 60000
-      );
+      ).toISOString();
 
       const res = await api.post("/create", {
-        startTime: utcDate.toISOString(),
+        startTime: utcStartTime,
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
       });
 
       const sessionId = res.data.sessionId;
-
       router.push(`/run/${sessionId}`);
     } catch (err) {
       console.error(err);
@@ -64,7 +59,6 @@ export default function CreateRunPage() {
           onChange={(e) => setStartTime(e.target.value)}
         />
       </div>
-
       <div>
         <input
           type="number"
@@ -73,7 +67,6 @@ export default function CreateRunPage() {
           onChange={(e) => setDuration(e.target.value)}
         />
       </div>
-
       <div>
         <input
           type="number"
