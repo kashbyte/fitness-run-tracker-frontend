@@ -30,12 +30,13 @@ export default function RunSessionPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown
+  // Countdown logic
   useEffect(() => {
     if (!session) return;
+
     const updateCountdown = () => {
       const now = new Date();
-      const start = new Date(session.startTime); // treat as local time string
+      const start = new Date(session.startTime);
       const diff = start.getTime() - now.getTime();
 
       if (diff <= 0) {
@@ -83,73 +84,84 @@ export default function RunSessionPage() {
 
   return (
     <div
-      style={{
-        maxWidth: "500px",
-        margin: "50px auto",
-        textAlign: "center",
-        fontFamily: "sans-serif",
-        color: "black",
-      }}
+      style={{ display: "flex", justifyContent: "center", marginTop: "50px" }}
     >
-      <h1>Run Session</h1>
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "30px",
+          borderRadius: "12px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          width: "100%",
+          maxWidth: "450px",
+          fontFamily: "sans-serif",
+          color: "black",
+          textAlign: "center",
+        }}
+      >
+        <h1 style={{ marginBottom: "20px" }}>Run Session</h1>
 
-      <p>
-        <strong>Session ID:</strong> {session.sessionId}
-      </p>
-      <p>
-        <strong>Status:</strong> {session.status}
-      </p>
-      <p>
-        <strong>Start Time:</strong> {session.startTime}
-      </p>
-      <p>
-        <strong>Countdown:</strong> {countdown}
-      </p>
-      <p>
-        <strong>Duration:</strong> {session.duration} minutes
-      </p>
-      <p>
-        <strong>
-          Participants ({session.participants.length}/{session.maxParticipants}
-          ):
-        </strong>
-      </p>
-      <ul>
-        {session.participants.map((p, i) => (
-          <li key={i}>{p.name}</li>
-        ))}
-      </ul>
+        <p>
+          <strong>Session ID:</strong> {session.sessionId}
+        </p>
+        <p>
+          <strong>Status:</strong> {session.status}
+        </p>
+        <p>
+          <strong>Start Time:</strong> {session.startTime}
+        </p>
+        <p>
+          <strong>Countdown:</strong> {countdown}
+        </p>
+        <p>
+          <strong>Duration:</strong> {session.duration} minutes
+        </p>
+        <p>
+          <strong>
+            Participants ({session.participants.length}/
+            {session.maxParticipants}):
+          </strong>
+        </p>
+        <ul>
+          {session.participants.map((p, i) => (
+            <li key={i}>{p.name}</li>
+          ))}
+        </ul>
 
-      {session.status === "completed" && <p>Session is completed</p>}
+        {session.status === "completed" && <p>Session is completed</p>}
 
-      {canJoin && (
-        <div style={{ marginTop: "20px" }}>
-          <input
-            type="text"
-            placeholder="Your Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ padding: "5px", marginRight: "10px" }}
-          />
-          <button
-            onClick={handleJoin}
-            disabled={loading}
-            style={{
-              padding: "5px 10px",
-              backgroundColor: "#4CAF50",
-              color: "white",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            {loading ? "Joining..." : "Join Session"}
-          </button>
-        </div>
-      )}
+        {canJoin && (
+          <div style={{ marginTop: "20px" }}>
+            <input
+              type="text"
+              placeholder="Your Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{ padding: "8px", marginRight: "10px", width: "60%" }}
+            />
+            <button
+              onClick={handleJoin}
+              disabled={loading}
+              style={{
+                padding: "8px 12px",
+                backgroundColor: "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              {loading ? "Joining..." : "Join"}
+            </button>
+          </div>
+        )}
 
-      {!canJoin && session.status !== "completed" && (
-        <p>Joining closed or session is active</p>
-      )}
+        {!canJoin && session.status !== "completed" && (
+          <p style={{ marginTop: "15px" }}>
+            Joining closed or session is active
+          </p>
+        )}
+      </div>
     </div>
   );
 }
