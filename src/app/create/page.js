@@ -1,37 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { api } from "../../lib/api";
+import { useRouter } from "next/navigation";
+import { api } from "../../../lib/api";
 
-export default function CreateRun() {
-  const [name, setName] = useState("");
+export default function CreateRunPage() {
+  const router = useRouter();
+
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!name || !startTime || !duration || !maxParticipants) {
-      alert("Please fill all fields");
+  const handleCreate = async () => {
+    if (!startTime || !duration || !maxParticipants) {
+      alert("All fields are required");
       return;
     }
 
     setLoading(true);
-
+    setError("");
     try {
       const res = await api.post("/create", {
-        name,
         startTime,
-        duration: Number(duration),
-        maxParticipants: Number(maxParticipants),
+        duration: parseInt(duration),
+        maxParticipants: parseInt(maxParticipants),
       });
-      alert("Run created! Session ID: " + res.data.sessionId);
-      // Optionally redirect to the session page:
-      // window.location.href = `/run/${res.data.sessionId}`;
+
+      const sessionId = res.data.sessionId;
+
+      // Redirect to the session page
+      router.push(`/run/${sessionId}`);
     } catch (err) {
       console.error(err);
-      alert("Failed to create run");
+      setError(err.response?.data?.message || "Failed to create run");
     } finally {
       setLoading(false);
     }
@@ -39,40 +42,39 @@ export default function CreateRun() {
 
   return (
     <div
-      style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center" }}
+      style={{ maxWidth: "500px", margin: "50px auto", textAlign: "center" }}
     >
       <h1>Create Run Session</h1>
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-      >
-        <input
-          type="text"
-          placeholder="Your Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <div>
         <input
           type="datetime-local"
           value={startTime}
           onChange={(e) => setStartTime(e.target.value)}
         />
+      </div>
+      <div>
         <input
           type="number"
           placeholder="Duration (minutes)"
           value={duration}
           onChange={(e) => setDuration(e.target.value)}
         />
+      </div>
+      <div>
         <input
           type="number"
           placeholder="Max Participants"
           value={maxParticipants}
           onChange={(e) => setMaxParticipants(e.target.value)}
         />
-        <button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create Run"}
-        </button>
-      </form>
+      </div>
+
+      <button onClick={handleCreate} disabled={loading}>
+        {loading ? "Creating..." : "Create Session"}
+      </button>
     </div>
   );
 }
