@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation"; // for App Router
-import { api } from "../../lib/api";
+import { useParams } from "next/navigation"; // App Router
+import { api } from "../../lib/api"; // must match folder structure exactly
 
 export default function RunSessionPage() {
   const params = useParams();
@@ -40,7 +40,7 @@ export default function RunSessionPage() {
       const res = await api.post(`/${sessionId}/join`, { name });
       alert("You joined the session!");
       setName("");
-      fetchSession(); // refresh participants
+      fetchSession();
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Failed to join session");
