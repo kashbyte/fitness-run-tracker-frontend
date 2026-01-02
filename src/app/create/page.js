@@ -10,7 +10,7 @@ export default function CreateRunPage() {
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("");
-  const [activityType, setActivityType] = useState("run"); // default run
+  const [activityType, setActivityType] = useState("run");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,17 +22,19 @@ export default function CreateRunPage() {
 
     setLoading(true);
     setError("");
+
     try {
       const start = new Date(startTime);
 
+      // Correct API endpoint
       const res = await api.post("/runs/create", {
         startTime: start.toISOString(),
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
-        activityType: activityType.toLowerCase(), // lowercase to match enum
+        activityType: activityType.toLowerCase(),
       });
 
-      // Navigate to generic run session page
+      // Navigate to generic session page
       router.push(`/run/${res.data.sessionId}`);
     } catch (err) {
       console.error(err);
@@ -92,7 +94,7 @@ export default function CreateRunPage() {
           </p>
         )}
 
-        {/* Activity type selector */}
+        {/* Activity type */}
         <div style={{ marginBottom: "18px" }}>
           <label
             style={{
@@ -123,7 +125,7 @@ export default function CreateRunPage() {
           </select>
         </div>
 
-        {/* Start time input */}
+        {/* Start time */}
         <div style={{ marginBottom: "18px" }}>
           <label
             style={{
@@ -150,7 +152,7 @@ export default function CreateRunPage() {
           />
         </div>
 
-        {/* Duration input */}
+        {/* Duration */}
         <div style={{ marginBottom: "18px" }}>
           <input
             type="number"
@@ -167,7 +169,7 @@ export default function CreateRunPage() {
           />
         </div>
 
-        {/* Max participants input */}
+        {/* Max participants */}
         <div style={{ marginBottom: "26px" }}>
           <input
             type="number"

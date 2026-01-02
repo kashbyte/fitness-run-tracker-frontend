@@ -26,7 +26,7 @@ export default function Home() {
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const res = await api.get("/runs"); // matches backend /runs route
+        const res = await api.get("/runs"); // match backend
         setSessions(res.data);
       } catch (err) {
         console.error(err);
@@ -36,7 +36,7 @@ export default function Home() {
     };
 
     fetchSessions();
-    const interval = setInterval(fetchSessions, 5000); // refresh every 5s
+    const interval = setInterval(fetchSessions, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -74,16 +74,16 @@ export default function Home() {
     return <div style={{ padding: "20px" }}>Loading sessions...</div>;
 
   const getStatusColor = (status) => {
-    if (status === "scheduled") return "#28a745"; // green for open
-    if (status === "active") return "#ff9800"; // orange for active
-    if (status === "completed") return "#6c757d"; // grey for completed
+    if (status === "scheduled") return "#28a745";
+    if (status === "active") return "#ff9800";
+    if (status === "completed") return "#6c757d";
     return "#000";
   };
 
   const getButtonColor = (status) => {
-    if (status === "scheduled") return "#28a745"; // green
-    if (status === "active") return "#ff9800"; // orange
-    return "#6c757d"; // grey
+    if (status === "scheduled") return "#28a745";
+    if (status === "active") return "#ff9800";
+    return "#6c757d";
   };
 
   return (

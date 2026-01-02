@@ -27,7 +27,6 @@ export default function RunSessionPage() {
     });
   };
 
-  // Fetch session details
   const fetchSession = async () => {
     try {
       const res = await api.get(`/runs/${sessionId}`);
@@ -40,11 +39,10 @@ export default function RunSessionPage() {
 
   useEffect(() => {
     fetchSession();
-    const interval = setInterval(fetchSession, 5000); // auto-refresh
+    const interval = setInterval(fetchSession, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown logic
   useEffect(() => {
     if (!session) return;
 
@@ -70,7 +68,6 @@ export default function RunSessionPage() {
     return () => clearInterval(timer);
   }, [session]);
 
-  // Join session
   const handleJoin = async () => {
     if (!name) {
       alert("Enter your name to join");
@@ -120,11 +117,7 @@ export default function RunSessionPage() {
         }}
       >
         <h1
-          style={{
-            fontSize: "26px",
-            fontWeight: "800",
-            marginBottom: "18px",
-          }}
+          style={{ fontSize: "26px", fontWeight: "800", marginBottom: "18px" }}
         >
           {session.activityType?.charAt(0).toUpperCase() +
             session.activityType?.slice(1) || "Activity"}{" "}
