@@ -74,10 +74,16 @@ export default function Home() {
     return <div style={{ padding: "20px" }}>Loading sessions...</div>;
 
   const getStatusColor = (status) => {
-    if (status === "scheduled") return "#4CAF50"; // green
-    if (status === "active") return "#FF9800"; // orange
-    if (status === "completed") return "#888"; // grey
+    if (status === "scheduled") return "#28a745"; // green for open
+    if (status === "active") return "#ff9800"; // orange for active
+    if (status === "completed") return "#6c757d"; // grey for completed
     return "#000";
+  };
+
+  const getButtonColor = (status) => {
+    if (status === "scheduled") return "#28a745"; // green
+    if (status === "active") return "#ff9800"; // orange
+    return "#6c757d"; // grey
   };
 
   return (
@@ -147,7 +153,7 @@ export default function Home() {
                 marginTop: "10px",
                 padding: "8px 12px",
                 borderRadius: "6px",
-                backgroundColor: "#4CAF50",
+                backgroundColor: getButtonColor(s.status),
                 color: "white",
                 border: "none",
                 cursor: "pointer",
