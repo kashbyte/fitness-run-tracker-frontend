@@ -88,7 +88,9 @@ export default function Home() {
 
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Run Tracker</h1>
+      <h1 style={{ textAlign: "center", marginBottom: "20px", color: "#000" }}>
+        Run Tracker
+      </h1>
       <button
         onClick={() => router.push("/create")}
         style={{
@@ -105,7 +107,9 @@ export default function Home() {
         Create Run
       </button>
 
-      {sessions.length === 0 && <p>No sessions yet</p>}
+      {sessions.length === 0 && (
+        <p style={{ color: "#000" }}>No sessions yet</p>
+      )}
 
       {sessions.map((s) => (
         <div
@@ -117,6 +121,7 @@ export default function Home() {
             marginBottom: "15px",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             backgroundColor: "#fff",
+            color: "#000", // text color black
           }}
         >
           <p>
