@@ -1,77 +1,115 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { api } from "../lib/api"; // make sure baseURL points to your deployed backend
 
 export default function Home() {
   const router = useRouter();
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const res = await api.get("/");
+        setSessions(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSessions();
+  }, []);
+
+  const formatLocalDate = (isoString) => {
+    const date = new Date(isoString);
+    return date.toLocaleString("en-SG", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  if (loading) return <div>Loading sessions...</div>;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#F7F7F7",
-        padding: "24px 20px",
-        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Header */}
-      <div style={{ marginTop: "40px", marginBottom: "20px" }}>
-        <h1
-          style={{
-            fontSize: "30px",
-            fontWeight: "800",
-            color: "#111",
-            marginBottom: "8px",
-          }}
-        >
-          Run Tracker
-        </h1>
-        <p
-          style={{
-            fontSize: "14px",
-            color: "#666",
-            maxWidth: "280px",
-            lineHeight: "1.5",
-          }}
-        >
-          Track group runs, join sessions, and stay accountable.
-        </p>
-      </div>
-
-      {/* Spacer */}
-      <div style={{ flex: 1 }} />
-
-      {/* CTA */}
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Run Tracker</h1>
       <button
         onClick={() => router.push("/create")}
         style={{
-          width: "100%",
-          padding: "16px",
-          fontSize: "16px",
-          fontWeight: "600",
-          backgroundColor: "#FC4C02",
+          backgroundColor: "#FF5A5F",
           color: "white",
+          padding: "10px 20px",
           border: "none",
-          borderRadius: "12px",
+          borderRadius: "8px",
+          width: "100%",
+          marginBottom: "20px",
           cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(252, 76, 2, 0.3)",
         }}
       >
         Create Run
       </button>
 
-      <p
-        style={{
-          textAlign: "center",
-          fontSize: "12px",
-          color: "#888",
-          marginTop: "14px",
-        }}
-      >
-        Runs are visible to participants only
-      </p>
+      {sessions.length === 0 && <p>No sessions yet</p>}
+
+      {sessions.map((s) => (
+        <div
+          key={s.sessionId}
+          style={{
+            border: "1px solid #ddd",
+            borderRadius: "12px",
+            padding: "15px",
+            marginBottom: "15px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+          }}
+        >
+          <p>
+            <strong>ID:</strong> {s.sessionId}
+          </p>
+          <p>
+            <strong>Status:</strong> {s.status}
+          </p>
+          <p>
+            <strong>Start:</strong> {formatLocalDate(s.startTime)}
+          </p>
+          <p>
+            <strong>Duration:</strong> {s.duration} min
+          </p>
+          <p>
+            <strong>
+              Participants: {s.participants.length}/{s.maxParticipants}
+            </strong>
+          </p>
+
+          {s.status === "scheduled" &&
+          s.participants.length < s.maxParticipants ? (
+            <button
+              onClick={() => router.push(`/run/${s.sessionId}`)}
+              style={{
+                marginTop: "10px",
+                padding: "8px 12px",
+                borderRadius: "6px",
+                backgroundColor: "#4CAF50",
+                color: "white",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Join Session
+            </button>
+          ) : (
+            <p style={{ marginTop: "10px", color: "#888" }}>
+              {s.status === "completed" ? "Completed" : "Full / Active"}
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
