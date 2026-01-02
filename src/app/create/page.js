@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "../../lib/api";
 
-export default function CreateRunPage() {
+export default function CreateActivityPage() {
   const router = useRouter();
 
+  const [activityType, setActivityType] = useState("Run");
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("");
@@ -14,7 +15,7 @@ export default function CreateRunPage() {
   const [error, setError] = useState("");
 
   const handleCreate = async () => {
-    if (!startTime || !duration || !maxParticipants) {
+    if (!activityType || !startTime || !duration || !maxParticipants) {
       alert("All fields are required");
       return;
     }
@@ -25,6 +26,7 @@ export default function CreateRunPage() {
       const start = new Date(startTime);
 
       const res = await api.post("/create", {
+        activityType,
         startTime: start.toISOString(),
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
@@ -68,7 +70,7 @@ export default function CreateRunPage() {
             color: "#111",
           }}
         >
-          Create Run
+          Create Activity
         </h1>
 
         <p
@@ -78,7 +80,7 @@ export default function CreateRunPage() {
             marginBottom: "24px",
           }}
         >
-          Schedule a run and invite participants
+          Schedule an activity and invite participants
         </p>
 
         {error && (
@@ -88,6 +90,37 @@ export default function CreateRunPage() {
             {error}
           </p>
         )}
+
+        <div style={{ marginBottom: "18px" }}>
+          <label
+            style={{
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#333",
+              display: "block",
+              marginBottom: "6px",
+            }}
+          >
+            Activity Type
+          </label>
+          <select
+            value={activityType}
+            onChange={(e) => setActivityType(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #DDD",
+              fontSize: "14px",
+            }}
+          >
+            <option value="Run">Run</option>
+            <option value="Gym">Gym</option>
+            <option value="Sport">Sport</option>
+            <option value="Cycling">Cycling</option>
+            <option value="Yoga">Yoga</option>
+          </select>
+        </div>
 
         <div style={{ marginBottom: "18px" }}>
           <label

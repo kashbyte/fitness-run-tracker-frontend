@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "../../../lib/api";
 
-export default function RunSessionPage() {
+export default function ActivitySessionPage() {
   const params = useParams();
   const sessionId = params.id;
 
@@ -123,8 +123,12 @@ export default function RunSessionPage() {
             marginBottom: "18px",
           }}
         >
-          Run Session
+          {session.activityType || "Activity"} Session
         </h1>
+
+        <p style={{ fontSize: "14px", marginBottom: "6px" }}>
+          <strong>Activity:</strong> {session.activityType || "Run"}
+        </p>
 
         <p style={{ fontSize: "14px", marginBottom: "6px" }}>
           <strong>Status:</strong> {session.status}

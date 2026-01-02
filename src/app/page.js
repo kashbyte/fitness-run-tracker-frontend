@@ -89,7 +89,7 @@ export default function Home() {
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
       <h1 style={{ textAlign: "center", marginBottom: "20px", color: "#fff" }}>
-        Run Tracker
+        Activity Tracker
       </h1>
       <button
         onClick={() => router.push("/create")}
@@ -104,7 +104,7 @@ export default function Home() {
           cursor: "pointer",
         }}
       >
-        Create Run
+        Create Activity
       </button>
 
       {sessions.length === 0 && (
@@ -126,6 +126,9 @@ export default function Home() {
         >
           <p>
             <strong>ID:</strong> {s.sessionId}
+          </p>
+          <p>
+            <strong>Activity:</strong> {s.activityType || "Run"}
           </p>
           <p>
             <strong>Status:</strong>{" "}
@@ -158,7 +161,9 @@ export default function Home() {
           {s.status === "scheduled" &&
           s.participants.length < s.maxParticipants ? (
             <button
-              onClick={() => router.push(`/run/${s.sessionId}`)}
+              onClick={() =>
+                router.push(`/${s.activityType?.toLowerCase()}/${s.sessionId}`)
+              }
               style={{
                 marginTop: "10px",
                 padding: "8px 12px",
@@ -169,7 +174,7 @@ export default function Home() {
                 cursor: "pointer",
               }}
             >
-              Join Session
+              Join {s.activityType || "Run"}
             </button>
           ) : (
             <p style={{ marginTop: "10px", color: "#888" }}>
