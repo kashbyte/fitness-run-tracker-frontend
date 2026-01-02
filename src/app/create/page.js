@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "../../lib/api";
 
-export default function CreateRunPage() {
+export default function CreateSessionPage() {
   const router = useRouter();
-
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("");
@@ -22,11 +21,8 @@ export default function CreateRunPage() {
 
     setLoading(true);
     setError("");
-
     try {
       const start = new Date(startTime);
-
-      // Correct API endpoint
       const res = await api.post("/runs/create", {
         startTime: start.toISOString(),
         duration: parseInt(duration),
@@ -34,8 +30,8 @@ export default function CreateRunPage() {
         activityType: activityType.toLowerCase(),
       });
 
-      // Navigate to generic session page
-      router.push(`/run/${res.data.sessionId}`);
+      // Navigate to generic activity page
+      router.push(`/activity/${res.data.sessionId}`);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Failed to create session");
@@ -52,7 +48,6 @@ export default function CreateRunPage() {
         display: "flex",
         justifyContent: "center",
         padding: "24px 16px",
-        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <div
@@ -75,14 +70,7 @@ export default function CreateRunPage() {
         >
           Create Session
         </h1>
-
-        <p
-          style={{
-            fontSize: "14px",
-            color: "#666",
-            marginBottom: "24px",
-          }}
-        >
+        <p style={{ fontSize: "14px", color: "#666", marginBottom: "24px" }}>
           Schedule an activity and invite participants
         </p>
 
@@ -94,7 +82,6 @@ export default function CreateRunPage() {
           </p>
         )}
 
-        {/* Activity type */}
         <div style={{ marginBottom: "18px" }}>
           <label
             style={{
@@ -125,7 +112,6 @@ export default function CreateRunPage() {
           </select>
         </div>
 
-        {/* Start time */}
         <div style={{ marginBottom: "18px" }}>
           <label
             style={{
@@ -152,41 +138,36 @@ export default function CreateRunPage() {
           />
         </div>
 
-        {/* Duration */}
-        <div style={{ marginBottom: "18px" }}>
-          <input
-            type="number"
-            placeholder="Duration (minutes)"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #DDD",
-              fontSize: "14px",
-            }}
-          />
-        </div>
+        <input
+          type="number"
+          placeholder="Duration (minutes)"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "10px",
+            border: "1px solid #DDD",
+            fontSize: "14px",
+            marginBottom: "18px",
+          }}
+        />
 
-        {/* Max participants */}
-        <div style={{ marginBottom: "26px" }}>
-          <input
-            type="number"
-            placeholder="Max Participants"
-            value={maxParticipants}
-            onChange={(e) => setMaxParticipants(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "10px",
-              border: "1px solid #DDD",
-              fontSize: "14px",
-            }}
-          />
-        </div>
+        <input
+          type="number"
+          placeholder="Max Participants"
+          value={maxParticipants}
+          onChange={(e) => setMaxParticipants(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "10px",
+            border: "1px solid #DDD",
+            fontSize: "14px",
+            marginBottom: "26px",
+          }}
+        />
 
-        {/* Create button */}
         <button
           onClick={handleCreate}
           disabled={loading}

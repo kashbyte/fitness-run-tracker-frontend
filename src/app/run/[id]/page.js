@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "../../../lib/api";
 
-export default function RunSessionPage() {
+export default function ActivitySessionPage() {
   const params = useParams();
   const sessionId = params.id;
 
@@ -50,7 +50,6 @@ export default function RunSessionPage() {
       const now = new Date();
       const start = new Date(session.startTime);
       const diff = start.getTime() - now.getTime();
-
       if (diff <= 0) {
         setCountdown("Started");
         return;
@@ -59,7 +58,6 @@ export default function RunSessionPage() {
       const hours = Math.floor(diff / 1000 / 60 / 60);
       const minutes = Math.floor((diff / 1000 / 60) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
-
       setCountdown(`${hours}h ${minutes}m ${seconds}s`);
     };
 
@@ -102,7 +100,6 @@ export default function RunSessionPage() {
         display: "flex",
         justifyContent: "center",
         padding: "24px 16px",
-        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <div
@@ -127,19 +124,15 @@ export default function RunSessionPage() {
         <p style={{ fontSize: "14px", marginBottom: "6px" }}>
           <strong>Activity:</strong> {session.activityType || "Run"}
         </p>
-
         <p style={{ fontSize: "14px", marginBottom: "6px" }}>
           <strong>Status:</strong> {session.status}
         </p>
-
         <p style={{ fontSize: "14px", marginBottom: "6px" }}>
           <strong>Start Time:</strong> {formatLocalDate(session.startTime)}
         </p>
-
         <p style={{ fontSize: "14px", marginBottom: "6px" }}>
           <strong>Countdown:</strong> {countdown}
         </p>
-
         <p style={{ fontSize: "14px", marginBottom: "14px" }}>
           <strong>Duration:</strong> {session.duration} minutes
         </p>

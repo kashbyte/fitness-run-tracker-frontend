@@ -22,11 +22,10 @@ export default function Home() {
     });
   };
 
-  // Fetch all sessions
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const res = await api.get("/runs"); // match backend
+        const res = await api.get("/runs");
         setSessions(res.data);
       } catch (err) {
         console.error(err);
@@ -40,7 +39,6 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown logic
   useEffect(() => {
     if (sessions.length === 0) return;
 
@@ -51,7 +49,6 @@ export default function Home() {
       sessions.forEach((s) => {
         const start = new Date(s.startTime);
         const diff = start.getTime() - now.getTime();
-
         if (diff <= 0) {
           newCountdowns[s.sessionId] = "Started";
         } else {
@@ -161,7 +158,7 @@ export default function Home() {
           {s.status === "scheduled" &&
           s.participants.length < s.maxParticipants ? (
             <button
-              onClick={() => router.push(`/run/${s.sessionId}`)}
+              onClick={() => router.push(`/activity/${s.sessionId}`)}
               style={{
                 marginTop: "10px",
                 padding: "8px 12px",
