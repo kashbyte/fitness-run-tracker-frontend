@@ -26,7 +26,7 @@ export default function Home() {
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const res = await api.get("/");
+        const res = await api.get("/runs"); // matches backend /runs route
         setSessions(res.data);
       } catch (err) {
         console.error(err);
@@ -36,7 +36,7 @@ export default function Home() {
     };
 
     fetchSessions();
-    const interval = setInterval(fetchSessions, 5000);
+    const interval = setInterval(fetchSessions, 5000); // refresh every 5s
     return () => clearInterval(interval);
   }, []);
 
@@ -121,7 +121,7 @@ export default function Home() {
             marginBottom: "15px",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             backgroundColor: "#fff",
-            color: "#000", // text color black
+            color: "#000",
           }}
         >
           <p>
@@ -161,9 +161,7 @@ export default function Home() {
           {s.status === "scheduled" &&
           s.participants.length < s.maxParticipants ? (
             <button
-              onClick={() =>
-                router.push(`/${s.activityType?.toLowerCase()}/${s.sessionId}`)
-              }
+              onClick={() => router.push(`/run/${s.sessionId}`)}
               style={{
                 marginTop: "10px",
                 padding: "8px 12px",

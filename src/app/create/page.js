@@ -25,13 +25,14 @@ export default function CreateRunPage() {
     try {
       const start = new Date(startTime);
 
-      const res = await api.post("/create", {
+      const res = await api.post("/runs/create", {
         startTime: start.toISOString(),
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
         activityType: activityType.toLowerCase(), // lowercase to match enum
       });
 
+      // Navigate to generic run session page
       router.push(`/run/${res.data.sessionId}`);
     } catch (err) {
       console.error(err);
@@ -91,6 +92,7 @@ export default function CreateRunPage() {
           </p>
         )}
 
+        {/* Activity type selector */}
         <div style={{ marginBottom: "18px" }}>
           <label
             style={{
@@ -121,6 +123,7 @@ export default function CreateRunPage() {
           </select>
         </div>
 
+        {/* Start time input */}
         <div style={{ marginBottom: "18px" }}>
           <label
             style={{
@@ -147,6 +150,7 @@ export default function CreateRunPage() {
           />
         </div>
 
+        {/* Duration input */}
         <div style={{ marginBottom: "18px" }}>
           <input
             type="number"
@@ -163,6 +167,7 @@ export default function CreateRunPage() {
           />
         </div>
 
+        {/* Max participants input */}
         <div style={{ marginBottom: "26px" }}>
           <input
             type="number"
@@ -179,6 +184,7 @@ export default function CreateRunPage() {
           />
         </div>
 
+        {/* Create button */}
         <button
           onClick={handleCreate}
           disabled={loading}

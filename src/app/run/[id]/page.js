@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "../../../lib/api";
 
-export default function ActivitySessionPage() {
+export default function RunSessionPage() {
   const params = useParams();
   const sessionId = params.id;
 
@@ -27,9 +27,10 @@ export default function ActivitySessionPage() {
     });
   };
 
+  // Fetch session details
   const fetchSession = async () => {
     try {
-      const res = await api.get(`/${sessionId}`);
+      const res = await api.get(`/runs/${sessionId}`);
       setSession(res.data);
     } catch (err) {
       console.error(err);
@@ -39,10 +40,11 @@ export default function ActivitySessionPage() {
 
   useEffect(() => {
     fetchSession();
-    const interval = setInterval(fetchSession, 5000);
+    const interval = setInterval(fetchSession, 5000); // auto-refresh
     return () => clearInterval(interval);
   }, []);
 
+  // Countdown logic
   useEffect(() => {
     if (!session) return;
 
@@ -68,6 +70,7 @@ export default function ActivitySessionPage() {
     return () => clearInterval(timer);
   }, [session]);
 
+  // Join session
   const handleJoin = async () => {
     if (!name) {
       alert("Enter your name to join");
@@ -75,7 +78,7 @@ export default function ActivitySessionPage() {
     }
     setLoading(true);
     try {
-      await api.post(`/${sessionId}/join`, { name });
+      await api.post(`/runs/${sessionId}/join`, { name });
       alert("You joined the session!");
       setName("");
       fetchSession();
@@ -123,7 +126,9 @@ export default function ActivitySessionPage() {
             marginBottom: "18px",
           }}
         >
-          {session.activityType || "Activity"} Session
+          {session.activityType?.charAt(0).toUpperCase() +
+            session.activityType?.slice(1) || "Activity"}{" "}
+          Session
         </h1>
 
         <p style={{ fontSize: "14px", marginBottom: "6px" }}>
