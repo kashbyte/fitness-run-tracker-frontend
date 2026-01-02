@@ -2,26 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "../lib/api"; // make sure baseURL points to your deployed backend
+import { api } from "../lib/api";
 
 export default function Home() {
   const router = useRouter();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        const res = await api.get("/");
-        setSessions(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSessions();
-  }, []);
+  const [countdowns, setCountdowns] = useState({}); // store countdown for each session
 
   const formatLocalDate = (isoString) => {
     const date = new Date(isoString);
@@ -35,7 +22,57 @@ export default function Home() {
     });
   };
 
-  if (loading) return <div>Loading sessions...</div>;
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const res = await api.get("/");
+        setSessions(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSessions();
+
+    // Refresh sessions every 5 seconds
+    const interval = setInterval(fetchSessions, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Only run countdown if we have sessions
+    if (sessions.length === 0) return;
+
+    const updateCountdowns = () => {
+      const now = new Date();
+      const newCountdowns = {};
+
+      sessions.forEach((s) => {
+        const start = new Date(s.startTime);
+        const diff = start.getTime() - now.getTime();
+
+        if (diff <= 0) {
+          newCountdowns[s.sessionId] = "Started";
+        } else {
+          const hours = Math.floor(diff / 1000 / 60 / 60);
+          const minutes = Math.floor((diff / 1000 / 60) % 60);
+          const seconds = Math.floor((diff / 1000) % 60);
+          newCountdowns[s.sessionId] = `${hours}h ${minutes}m ${seconds}s`;
+        }
+      });
+
+      setCountdowns(newCountdowns);
+    };
+
+    updateCountdowns();
+    const timer = setInterval(updateCountdowns, 1000);
+    return () => clearInterval(timer);
+  }, [sessions]);
+
+  if (loading)
+    return <div style={{ padding: "20px" }}>Loading sessions...</div>;
 
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
@@ -77,6 +114,9 @@ export default function Home() {
           </p>
           <p>
             <strong>Start:</strong> {formatLocalDate(s.startTime)}
+          </p>
+          <p>
+            <strong>Countdown:</strong> {countdowns[s.sessionId]}
           </p>
           <p>
             <strong>Duration:</strong> {s.duration} min
