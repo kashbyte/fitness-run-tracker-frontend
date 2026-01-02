@@ -9,64 +9,69 @@ export default function Home() {
     <div
       style={{
         minHeight: "100vh",
+        backgroundColor: "#F7F7F7",
+        padding: "24px 20px",
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
-        padding: "20px",
-        fontFamily: "sans-serif",
+        flexDirection: "column",
       }}
     >
-      <div
-        style={{
-          backgroundColor: "white",
-          width: "100%",
-          maxWidth: "380px",
-          padding: "30px 25px",
-          borderRadius: "16px",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-          textAlign: "center",
-        }}
-      >
+      {/* Header */}
+      <div style={{ marginTop: "40px", marginBottom: "20px" }}>
         <h1
           style={{
-            marginBottom: "10px",
-            color: "#2E7D32",
-            fontSize: "26px",
+            fontSize: "30px",
+            fontWeight: "800",
+            color: "#111",
+            marginBottom: "8px",
           }}
         >
           Run Tracker
         </h1>
-
         <p
           style={{
-            marginBottom: "25px",
-            color: "#555",
             fontSize: "14px",
+            color: "#666",
+            maxWidth: "280px",
             lineHeight: "1.5",
           }}
         >
-          Create and join running sessions with live countdowns and
-          participants.
+          Track group runs, join sessions, and stay accountable.
         </p>
-
-        <button
-          onClick={() => router.push("/create")}
-          style={{
-            width: "100%",
-            padding: "14px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "10px",
-            cursor: "pointer",
-          }}
-        >
-          Create Run
-        </button>
       </div>
+
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
+
+      {/* CTA */}
+      <button
+        onClick={() => router.push("/create")}
+        style={{
+          width: "100%",
+          padding: "16px",
+          fontSize: "16px",
+          fontWeight: "600",
+          backgroundColor: "#FC4C02",
+          color: "white",
+          border: "none",
+          borderRadius: "12px",
+          cursor: "pointer",
+          boxShadow: "0 4px 12px rgba(252, 76, 2, 0.3)",
+        }}
+      >
+        Create Run
+      </button>
+
+      <p
+        style={{
+          textAlign: "center",
+          fontSize: "12px",
+          color: "#888",
+          marginTop: "14px",
+        }}
+      >
+        Runs are visible to participants only
+      </p>
     </div>
   );
 }
