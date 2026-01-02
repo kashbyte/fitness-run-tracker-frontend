@@ -4,18 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "../../lib/api";
 
-export default function CreateActivityPage() {
+export default function CreateRunPage() {
   const router = useRouter();
 
-  const [activityType, setActivityType] = useState("Run");
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("");
+  const [activityType, setActivityType] = useState("run"); // default run
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleCreate = async () => {
-    if (!activityType || !startTime || !duration || !maxParticipants) {
+    if (!startTime || !duration || !maxParticipants || !activityType) {
       alert("All fields are required");
       return;
     }
@@ -26,10 +26,10 @@ export default function CreateActivityPage() {
       const start = new Date(startTime);
 
       const res = await api.post("/create", {
-        activityType,
         startTime: start.toISOString(),
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
+        activityType: activityType.toLowerCase(), // lowercase to match enum
       });
 
       router.push(`/run/${res.data.sessionId}`);
@@ -70,7 +70,7 @@ export default function CreateActivityPage() {
             color: "#111",
           }}
         >
-          Create Activity
+          Create Session
         </h1>
 
         <p
@@ -114,11 +114,10 @@ export default function CreateActivityPage() {
               fontSize: "14px",
             }}
           >
-            <option value="Run">Run</option>
-            <option value="Gym">Gym</option>
-            <option value="Sport">Sport</option>
-            <option value="Cycling">Cycling</option>
-            <option value="Yoga">Yoga</option>
+            <option value="run">Run</option>
+            <option value="gym">Gym</option>
+            <option value="sport">Sport</option>
+            <option value="other">Other</option>
           </select>
         </div>
 
