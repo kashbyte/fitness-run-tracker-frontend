@@ -88,7 +88,7 @@ export default function Home() {
 
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "20px", color: "#000" }}>
+      <h1 style={{ textAlign: "center", marginBottom: "20px", color: "#fff" }}>
         Run Tracker
       </h1>
       <button
@@ -139,7 +139,12 @@ export default function Home() {
             <strong>Start:</strong> {formatLocalDate(s.startTime)}
           </p>
           <p>
-            <strong>Countdown:</strong> {countdowns[s.sessionId]}
+            <strong>Countdown:</strong>{" "}
+            <span
+              style={{ color: getStatusColor(s.status), fontWeight: "bold" }}
+            >
+              {countdowns[s.sessionId]}
+            </span>
           </p>
           <p>
             <strong>Duration:</strong> {s.duration} min
