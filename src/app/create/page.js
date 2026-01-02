@@ -1,167 +1,171 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "../../lib/api";
 
-export default function Home() {
+export default function CreateRunPage() {
   const router = useRouter();
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [countdowns, setCountdowns] = useState({});
 
-  const formatLocalDate = (isoString) => {
-    const date = new Date(isoString);
-    return date.toLocaleString("en-SG", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  };
+  const [startTime, setStartTime] = useState("");
+  const [duration, setDuration] = useState("");
+  const [maxParticipants, setMaxParticipants] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Fetch all sessions
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        const res = await api.get("/");
-        setSessions(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleCreate = async () => {
+    if (!startTime || !duration || !maxParticipants) {
+      alert("All fields are required");
+      return;
+    }
 
-    fetchSessions();
-    const interval = setInterval(fetchSessions, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    setLoading(true);
+    setError("");
+    try {
+      const start = new Date(startTime);
 
-  // Countdown logic
-  useEffect(() => {
-    if (sessions.length === 0) return;
-
-    const updateCountdowns = () => {
-      const now = new Date();
-      const newCountdowns = {};
-
-      sessions.forEach((s) => {
-        const start = new Date(s.startTime);
-        const diff = start.getTime() - now.getTime();
-
-        if (diff <= 0) {
-          newCountdowns[s.sessionId] = "Started";
-        } else {
-          const hours = Math.floor(diff / 1000 / 60 / 60);
-          const minutes = Math.floor((diff / 1000 / 60) % 60);
-          const seconds = Math.floor((diff / 1000) % 60);
-          newCountdowns[s.sessionId] = `${hours}h ${minutes}m ${seconds}s`;
-        }
+      const res = await api.post("/create", {
+        startTime: start.toISOString(),
+        duration: parseInt(duration),
+        maxParticipants: parseInt(maxParticipants),
       });
 
-      setCountdowns(newCountdowns);
-    };
-
-    updateCountdowns();
-    const timer = setInterval(updateCountdowns, 1000);
-    return () => clearInterval(timer);
-  }, [sessions]);
-
-  if (loading)
-    return <div style={{ padding: "20px" }}>Loading sessions...</div>;
-
-  const getStatusColor = (status) => {
-    if (status === "scheduled") return "#4CAF50"; // green
-    if (status === "active") return "#FF9800"; // orange
-    if (status === "completed") return "#888"; // grey
-    return "#000";
+      router.push(`/run/${res.data.sessionId}`);
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to create session");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Run Tracker</h1>
-      <button
-        onClick={() => router.push("/create")}
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#F7F7F7",
+        display: "flex",
+        justifyContent: "center",
+        padding: "24px 16px",
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    >
+      <div
         style={{
-          backgroundColor: "#FF5A5F",
-          color: "white",
-          padding: "10px 20px",
-          border: "none",
-          borderRadius: "8px",
+          backgroundColor: "white",
+          padding: "28px 22px",
+          borderRadius: "16px",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
           width: "100%",
-          marginBottom: "20px",
-          cursor: "pointer",
+          maxWidth: "420px",
         }}
       >
-        Create Run
-      </button>
-
-      {sessions.length === 0 && <p>No sessions yet</p>}
-
-      {sessions.map((s) => (
-        <div
-          key={s.sessionId}
+        <h1
           style={{
-            borderLeft: `6px solid ${getStatusColor(s.status)}`,
-            borderRadius: "8px",
-            padding: "15px",
-            marginBottom: "15px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            backgroundColor: "#fff",
+            fontSize: "26px",
+            fontWeight: "800",
+            marginBottom: "6px",
+            color: "#111",
           }}
         >
-          <p>
-            <strong>ID:</strong> {s.sessionId}
-          </p>
-          <p>
-            <strong>Status:</strong>{" "}
-            <span
-              style={{ color: getStatusColor(s.status), fontWeight: "bold" }}
-            >
-              {s.status.charAt(0).toUpperCase() + s.status.slice(1)}
-            </span>
-          </p>
-          <p>
-            <strong>Start:</strong> {formatLocalDate(s.startTime)}
-          </p>
-          <p>
-            <strong>Countdown:</strong> {countdowns[s.sessionId]}
-          </p>
-          <p>
-            <strong>Duration:</strong> {s.duration} min
-          </p>
-          <p>
-            <strong>
-              Participants: {s.participants.length}/{s.maxParticipants}
-            </strong>
-          </p>
+          Create Run
+        </h1>
 
-          {s.status === "scheduled" &&
-          s.participants.length < s.maxParticipants ? (
-            <button
-              onClick={() => router.push(`/run/${s.sessionId}`)}
-              style={{
-                marginTop: "10px",
-                padding: "8px 12px",
-                borderRadius: "6px",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Join Session
-            </button>
-          ) : (
-            <p style={{ marginTop: "10px", color: "#888" }}>
-              {s.status === "completed" ? "Completed" : "Full / Active"}
-            </p>
-          )}
+        <p
+          style={{
+            fontSize: "14px",
+            color: "#666",
+            marginBottom: "24px",
+          }}
+        >
+          Schedule a run and invite participants
+        </p>
+
+        {error && (
+          <p
+            style={{ color: "#D32F2F", fontSize: "14px", marginBottom: "12px" }}
+          >
+            {error}
+          </p>
+        )}
+
+        <div style={{ marginBottom: "18px" }}>
+          <label
+            style={{
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#333",
+              display: "block",
+              marginBottom: "6px",
+            }}
+          >
+            Start Time
+          </label>
+          <input
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #DDD",
+              fontSize: "14px",
+            }}
+          />
         </div>
-      ))}
+
+        <div style={{ marginBottom: "18px" }}>
+          <input
+            type="number"
+            placeholder="Duration (minutes)"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #DDD",
+              fontSize: "14px",
+            }}
+          />
+        </div>
+
+        <div style={{ marginBottom: "26px" }}>
+          <input
+            type="number"
+            placeholder="Max Participants"
+            value={maxParticipants}
+            onChange={(e) => setMaxParticipants(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #DDD",
+              fontSize: "14px",
+            }}
+          />
+        </div>
+
+        <button
+          onClick={handleCreate}
+          disabled={loading}
+          style={{
+            width: "100%",
+            padding: "16px",
+            backgroundColor: "#FC4C02",
+            color: "white",
+            border: "none",
+            borderRadius: "12px",
+            fontSize: "16px",
+            fontWeight: "600",
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(252,76,2,0.3)",
+          }}
+        >
+          {loading ? "Creating..." : "Create Session"}
+        </button>
+      </div>
     </div>
   );
 }

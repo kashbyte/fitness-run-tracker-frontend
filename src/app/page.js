@@ -8,7 +8,7 @@ export default function Home() {
   const router = useRouter();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [countdowns, setCountdowns] = useState({}); // store countdown for each session
+  const [countdowns, setCountdowns] = useState({});
 
   const formatLocalDate = (isoString) => {
     const date = new Date(isoString);
@@ -22,6 +22,7 @@ export default function Home() {
     });
   };
 
+  // Fetch all sessions
   useEffect(() => {
     const fetchSessions = async () => {
       try {
@@ -35,14 +36,12 @@ export default function Home() {
     };
 
     fetchSessions();
-
-    // Refresh sessions every 5 seconds
     const interval = setInterval(fetchSessions, 5000);
     return () => clearInterval(interval);
   }, []);
 
+  // Countdown logic
   useEffect(() => {
-    // Only run countdown if we have sessions
     if (sessions.length === 0) return;
 
     const updateCountdowns = () => {
@@ -74,6 +73,13 @@ export default function Home() {
   if (loading)
     return <div style={{ padding: "20px" }}>Loading sessions...</div>;
 
+  const getStatusColor = (status) => {
+    if (status === "scheduled") return "#4CAF50"; // green
+    if (status === "active") return "#FF9800"; // orange
+    if (status === "completed") return "#888"; // grey
+    return "#000";
+  };
+
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
       <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Run Tracker</h1>
@@ -99,18 +105,24 @@ export default function Home() {
         <div
           key={s.sessionId}
           style={{
-            border: "1px solid #ddd",
-            borderRadius: "12px",
+            borderLeft: `6px solid ${getStatusColor(s.status)}`,
+            borderRadius: "8px",
             padding: "15px",
             marginBottom: "15px",
             boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+            backgroundColor: "#fff",
           }}
         >
           <p>
             <strong>ID:</strong> {s.sessionId}
           </p>
           <p>
-            <strong>Status:</strong> {s.status}
+            <strong>Status:</strong>{" "}
+            <span
+              style={{ color: getStatusColor(s.status), fontWeight: "bold" }}
+            >
+              {s.status.charAt(0).toUpperCase() + s.status.slice(1)}
+            </span>
           </p>
           <p>
             <strong>Start:</strong> {formatLocalDate(s.startTime)}
