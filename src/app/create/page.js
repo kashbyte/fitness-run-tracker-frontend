@@ -22,11 +22,10 @@ export default function CreateRunPage() {
     setLoading(true);
     setError("");
     try {
-      // Convert local datetime-local input to JS Date and send as UTC ISO string
       const start = new Date(startTime);
 
       const res = await api.post("/create", {
-        startTime: start.toISOString(), // store UTC in backend
+        startTime: start.toISOString(),
         duration: parseInt(duration),
         maxParticipants: parseInt(maxParticipants),
       });
@@ -42,57 +41,109 @@ export default function CreateRunPage() {
 
   return (
     <div
-      style={{ display: "flex", justifyContent: "center", marginTop: "50px" }}
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#F7F7F7",
+        display: "flex",
+        justifyContent: "center",
+        padding: "24px 16px",
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
     >
       <div
         style={{
           backgroundColor: "white",
-          padding: "30px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          padding: "28px 22px",
+          borderRadius: "16px",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
           width: "100%",
-          maxWidth: "400px",
-          textAlign: "center",
-          fontFamily: "sans-serif",
+          maxWidth: "420px",
         }}
       >
-        <h1 style={{ marginBottom: "20px" }}>Create Run Session</h1>
+        <h1
+          style={{
+            fontSize: "26px",
+            fontWeight: "800",
+            marginBottom: "6px",
+            color: "#111",
+          }}
+        >
+          Create Run
+        </h1>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        <p
+          style={{
+            fontSize: "14px",
+            color: "#666",
+            marginBottom: "24px",
+          }}
+        >
+          Schedule a run and invite participants
+        </p>
 
-        <div style={{ marginBottom: "15px" }}>
-          <label>
-            Start Time:
-            <input
-              type="datetime-local"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              style={{
-                marginLeft: "10px",
-                padding: "5px",
-                width: "calc(100% - 20px)",
-              }}
-            />
+        {error && (
+          <p
+            style={{ color: "#D32F2F", fontSize: "14px", marginBottom: "12px" }}
+          >
+            {error}
+          </p>
+        )}
+
+        <div style={{ marginBottom: "18px" }}>
+          <label
+            style={{
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#333",
+              display: "block",
+              marginBottom: "6px",
+            }}
+          >
+            Start Time
           </label>
+          <input
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #DDD",
+              fontSize: "14px",
+            }}
+          />
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
+        <div style={{ marginBottom: "18px" }}>
           <input
             type="number"
             placeholder="Duration (minutes)"
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
-            style={{ padding: "8px", width: "100%" }}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #DDD",
+              fontSize: "14px",
+            }}
           />
         </div>
 
-        <div style={{ marginBottom: "25px" }}>
+        <div style={{ marginBottom: "26px" }}>
           <input
             type="number"
             placeholder="Max Participants"
             value={maxParticipants}
             onChange={(e) => setMaxParticipants(e.target.value)}
-            style={{ padding: "8px", width: "100%" }}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #DDD",
+              fontSize: "14px",
+            }}
           />
         </div>
 
@@ -100,13 +151,16 @@ export default function CreateRunPage() {
           onClick={handleCreate}
           disabled={loading}
           style={{
-            padding: "10px 20px",
-            backgroundColor: "#4CAF50",
+            width: "100%",
+            padding: "16px",
+            backgroundColor: "#FC4C02",
             color: "white",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "12px",
+            fontSize: "16px",
+            fontWeight: "600",
             cursor: "pointer",
-            width: "100%",
+            boxShadow: "0 4px 12px rgba(252,76,2,0.3)",
           }}
         >
           {loading ? "Creating..." : "Create Session"}

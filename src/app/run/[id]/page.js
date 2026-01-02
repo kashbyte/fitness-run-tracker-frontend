@@ -87,8 +87,8 @@ export default function RunSessionPage() {
     }
   };
 
-  if (error) return <div style={{ color: "black" }}>{error}</div>;
-  if (!session) return <div style={{ color: "black" }}>Loading session...</div>;
+  if (error) return <div style={{ color: "#111" }}>{error}</div>;
+  if (!session) return <div style={{ color: "#111" }}>Loading session...</div>;
 
   const canJoin =
     session.status === "scheduled" &&
@@ -96,80 +96,102 @@ export default function RunSessionPage() {
 
   return (
     <div
-      style={{ display: "flex", justifyContent: "center", marginTop: "50px" }}
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#F7F7F7",
+        display: "flex",
+        justifyContent: "center",
+        padding: "24px 16px",
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
     >
       <div
         style={{
           backgroundColor: "white",
-          padding: "30px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          padding: "28px 22px",
+          borderRadius: "16px",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
           width: "100%",
-          maxWidth: "450px",
-          fontFamily: "sans-serif",
-          color: "black",
-          textAlign: "center",
+          maxWidth: "460px",
+          color: "#111",
         }}
       >
-        <h1 style={{ marginBottom: "20px" }}>Run Session</h1>
+        <h1
+          style={{
+            fontSize: "26px",
+            fontWeight: "800",
+            marginBottom: "18px",
+          }}
+        >
+          Run Session
+        </h1>
 
-        <p>
-          <strong>Session ID:</strong> {session.sessionId}
-        </p>
-        <p>
+        <p style={{ fontSize: "14px", marginBottom: "6px" }}>
           <strong>Status:</strong> {session.status}
         </p>
-        <p>
+
+        <p style={{ fontSize: "14px", marginBottom: "6px" }}>
           <strong>Start Time:</strong> {formatLocalDate(session.startTime)}
         </p>
-        <p>
+
+        <p style={{ fontSize: "14px", marginBottom: "6px" }}>
           <strong>Countdown:</strong> {countdown}
         </p>
-        <p>
+
+        <p style={{ fontSize: "14px", marginBottom: "14px" }}>
           <strong>Duration:</strong> {session.duration} minutes
         </p>
-        <p>
-          <strong>
-            Participants ({session.participants.length}/
-            {session.maxParticipants}):
-          </strong>
-        </p>
-        <ul>
-          {session.participants.map((p, i) => (
-            <li key={i}>{p.name}</li>
-          ))}
-        </ul>
 
-        {session.status === "completed" && <p>Session is completed</p>}
+        <div style={{ marginBottom: "16px" }}>
+          <strong style={{ fontSize: "14px" }}>
+            Participants ({session.participants.length}/
+            {session.maxParticipants})
+          </strong>
+          <ul style={{ marginTop: "8px", paddingLeft: "18px" }}>
+            {session.participants.map((p, i) => (
+              <li key={i} style={{ fontSize: "14px", color: "#444" }}>
+                {p.name}
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {canJoin && (
-          <div style={{ marginTop: "20px" }}>
+          <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
             <input
               type="text"
               placeholder="Your Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              style={{ padding: "8px", marginRight: "10px", width: "60%" }}
+              style={{
+                flex: 1,
+                padding: "12px",
+                borderRadius: "10px",
+                border: "1px solid #DDD",
+                fontSize: "14px",
+              }}
             />
             <button
               onClick={handleJoin}
               disabled={loading}
               style={{
-                padding: "8px 12px",
-                backgroundColor: "#4CAF50",
+                padding: "12px 16px",
+                backgroundColor: "#FC4C02",
                 color: "white",
                 border: "none",
-                borderRadius: "6px",
+                borderRadius: "10px",
+                fontSize: "14px",
+                fontWeight: "600",
                 cursor: "pointer",
               }}
             >
-              {loading ? "Joining..." : "Join"}
+              {loading ? "..." : "Join"}
             </button>
           </div>
         )}
 
         {!canJoin && session.status !== "completed" && (
-          <p style={{ marginTop: "15px" }}>
+          <p style={{ marginTop: "16px", fontSize: "14px", color: "#666" }}>
             Joining closed or session is active
           </p>
         )}
