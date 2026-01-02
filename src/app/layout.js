@@ -1,13 +1,8 @@
 "use client";
-import "./globals.css";
 
+import "./globals.css";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
-export const metadata = {
-  title: "Fitness Tracker",
-  description: "Track and join activities",
-};
 
 export default function RootLayout({ children }) {
   const router = useRouter();
@@ -16,6 +11,9 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
+      <head>
+        <title>Fitness Tracker</title>
+      </head>
       <body
         style={{
           margin: 0,
